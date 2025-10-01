@@ -108,7 +108,7 @@
                     <h2 class="text-xl font-semibold text-slate-700">고급 기능 (Advanced)</h2>
                     <div class="bg-slate-100 p-4 rounded-lg">
                         <label for="show-objective-line" class="flex items-center justify-between cursor-pointer">
-                            <span class="font-medium text-slate-800">목적 함수 등고선 표시</span>
+                            <span class="font-medium text-slate-800">목적 함수 등고선 조작</span>
                             <div class="relative">
                                 <input type="checkbox" id="show-objective-line" class="sr-only peer">
                                 <div class="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -245,13 +245,20 @@
 
         // --- 유틸리티 함수 ---
         function formatNumber(num) {
-            if (num === Infinity) return "∞";
-            if (num === -Infinity) return "-∞";
-            if (Math.abs(num) < EPSILON) return "0";
-            if (Math.abs(num) > 10000 || (Math.abs(num) < 0.001 && Math.abs(num) > 0)) {
-                return num.toExponential(2);
+            // Ensure num is a number before calling methods on it.
+            const numValue = typeof num === 'string' ? parseFloat(num) : num;
+            
+            if (isNaN(numValue)) {
+                return "N/A"; // Or handle as an error
             }
-            return parseFloat(num.toFixed(3)).toString();
+
+            if (numValue === Infinity) return "∞";
+            if (numValue === -Infinity) return "-∞";
+            if (Math.abs(numValue) < EPSILON) return "0";
+            if (Math.abs(numValue) > 10000 || (Math.abs(numValue) < 0.001 && Math.abs(numValue) > 0)) {
+                return numValue.toExponential(2);
+            }
+            return parseFloat(numValue.toFixed(3)).toString();
         }
 
         function parseExpression(str) {
@@ -301,14 +308,13 @@
             function resizeCanvas() {
                 canvas.width = canvasContainer.clientWidth;
                 canvas.height = canvasContainer.clientHeight;
-                draw();
+                solveAndDraw();
             }
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
-            solveButton.click();
         });
 
-        solveButton.addEventListener('click', draw);
+        solveButton.addEventListener('click', solveAndDraw);
 
         addConstraintButton.addEventListener('click', () => {
             const newConstraint = document.createElement('div');
@@ -330,17 +336,17 @@
         showObjectiveLineCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
                 objectiveSliderContainer.style.display = 'block';
-                updateSliderRange();
+                updateSliderRange(true);
             } else {
                 objectiveSliderContainer.style.display = 'none';
             }
-            draw();
+            redraw();
         });
 
         objectiveSlider.addEventListener('input', () => {
             const zValue = parseFloat(objectiveSlider.value);
             zValueLabel.textContent = formatNumber(zValue);
-            draw();
+            redraw();
         });
 
         canvas.addEventListener('mousemove', (e) => {
@@ -375,7 +381,7 @@
         });
 
         // --- 핵심 로직 ---
-        function draw() {
+        function solveAndDraw() {
             const constraintsInputs = Array.from(document.querySelectorAll('.constraint-input'));
             parsedConstraints = constraintsInputs.map(input => parseConstraint(input.value)).filter(c => c !== null);
 
@@ -423,7 +429,15 @@
             }
 
             optimalSolution = findOptimalSolution(feasibleVertices, objectiveFunction);
-            updateSliderRange();
+            updateSliderRange(true);
+            
+            redraw();
+            displayResults(objectiveFunction);
+        }
+        
+        function redraw() {
+            const objectiveFunction = parseObjectiveFunction();
+            if (!objectiveFunction) return;
 
             clearCanvas();
             setupCoordinateSystem();
@@ -438,10 +452,14 @@
             }
 
             if (showObjectiveLineCheckbox.checked) {
-                drawObjectiveLine(objectiveFunction);
+                const zValue = parseFloat(objectiveSlider.value);
+                drawObjectiveLine(objectiveFunction, zValue);
+            } else {
+                // Draw the optimal line by default if a solution exists
+                if (optimalSolution && optimalSolution.type === 'optimal' && optimalSolution.vertex) {
+                    drawObjectiveLine(objectiveFunction, optimalSolution.value);
+                }
             }
-            
-            displayResults(objectiveFunction);
         }
 
         function checkConstraint(constraint, point) {
@@ -456,8 +474,6 @@
 
         function findOptimalSolution(vertices, objective) {
             if (vertices.length === 0) {
-                // Check if constraints are contradictory, e.g., x>=5 and x<=0
-                // This is a simplified check
                  let hasPositiveX = parsedConstraints.some(c=>c.original === 'x >= 0');
                  let hasPositiveY = parsedConstraints.some(c=>c.original === 'y >= 0');
                  if(hasPositiveX && hasPositiveY && parsedConstraints.length > 2) {
@@ -485,7 +501,6 @@
             });
             
              if (vertices.length > 0 && bestVertex === null) {
-                 // Might indicate an unbounded problem if no optimal vertex is found
                  return { type: 'unbounded' };
              }
              if (vertices.length === 0) return { type: 'infeasible' };
@@ -493,17 +508,33 @@
             return { type: 'optimal', vertex: bestVertex, value: bestValue };
         }
         
-        function updateSliderRange() {
+        function updateSliderRange(resetValue = false) {
             if (feasibleVertices.length > 0) {
-                const zValues = feasibleVertices.map(v => v.z);
+                const zValues = feasibleVertices.map(v => v.z).filter(z => isFinite(z));
+                if (zValues.length === 0) {
+                     objectiveSlider.min = 0; objectiveSlider.max = 100; objectiveSlider.value = 50;
+                     zValueLabel.textContent = "";
+                     return;
+                }
+
                 const minZ = Math.min(...zValues);
                 const maxZ = Math.max(...zValues);
                 objectiveSlider.min = minZ;
                 objectiveSlider.max = maxZ;
-                if(optimalSolution && optimalSolution.value){
+                
+                if (resetValue && optimalSolution && optimalSolution.value !== undefined && isFinite(optimalSolution.value)) {
                     objectiveSlider.value = optimalSolution.value;
-                    zValueLabel.textContent = formatNumber(optimalSolution.value);
                 }
+                
+                if (parseFloat(objectiveSlider.value) < minZ) objectiveSlider.value = minZ;
+                if (parseFloat(objectiveSlider.value) > maxZ) objectiveSlider.value = maxZ;
+                
+                zValueLabel.textContent = formatNumber(objectiveSlider.value);
+            } else {
+                objectiveSlider.min = 0;
+                objectiveSlider.max = 100;
+                objectiveSlider.value = 50;
+                zValueLabel.textContent = "";
             }
         }
         
@@ -517,7 +548,7 @@
         }
 
         function clearCanvas() {
-             ctx.fillStyle = '#f8fafc'; // bg-slate-50
+             ctx.fillStyle = '#f8fafc';
              ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
@@ -553,7 +584,7 @@
         }
         
         function calculateNiceStep(range, maxSteps) {
-            if (range === 0) return 1;
+            if (range <= 0) return 1;
             const roughStep = range / maxSteps;
             const exponent = Math.floor(Math.log10(roughStep));
             const powerOf10 = Math.pow(10, exponent);
@@ -578,6 +609,7 @@
             const viewWidth = canvas.width / scale;
             const viewHeight = canvas.height / scale;
             const step = calculateNiceStep(Math.max(viewWidth, viewHeight), 10);
+            if (step <= 0) return;
             
             for (let i = 1; origin.x + i * step * scale < canvas.width; i++) {
                 const x = i * step; const sx = origin.x + x * scale;
@@ -624,7 +656,7 @@
         
         function drawFeasibleRegion(vertices) {
             if (vertices.length < 2) return;
-            if (vertices.length === 2) { // Draw a line
+            if (vertices.length === 2) { 
                 ctx.beginPath();
                 const p1 = toScreenCoords(vertices[0]);
                 const p2 = toScreenCoords(vertices[1]);
@@ -668,12 +700,16 @@
             ctx.stroke();
         }
         
-        function drawObjectiveLine(objective) {
-            const z = parseFloat(objectiveSlider.value);
+        function drawObjectiveLine(objective, z) {
+            if (isNaN(z) || !isFinite(z)) return;
             const {x: a, y: b} = objective.coeffs;
             if (Math.abs(a) < EPSILON && Math.abs(b) < EPSILON) return;
+            
             ctx.beginPath();
-            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#f59e0b'; 
+            ctx.lineWidth = 2; 
+            ctx.setLineDash([5, 5]);
+            
             let x1, y1, x2, y2;
              if (Math.abs(b) > EPSILON) {
                 x1 = -origin.x / scale; y1 = (z - a * x1) / b;
@@ -706,6 +742,7 @@
                  solutionSummary.classList.add('bg-yellow-100', 'text-yellow-800');
                  solutionSummary.innerHTML = `<p class="font-bold">해가 무한함 (Unbounded)</p><p>목적 함수 값이 무한히 커지거나 작아질 수 있습니다.</p>`;
                  document.getElementById('sensitivity-analysis-container').classList.add('hidden');
+                 return;
             }
             if(optimalSolution.type === 'optimal' && optimalSolution.vertex) {
                 solutionSummary.classList.add('bg-green-100', 'text-green-800');
