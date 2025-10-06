@@ -444,7 +444,12 @@
             setupCoordinateSystem();
             drawGrid();
             drawAxes();
-            drawFeasibleRegion(feasibleVertices);
+            
+            // 해가 무한한(unbounded) 경우에는 실행 가능 영역을 색칠하지 않습니다.
+            if (optimalSolution && optimalSolution.type !== 'unbounded') {
+                 drawFeasibleRegion(feasibleVertices);
+            }
+            
             drawConstraintLines();
             drawVertices(feasibleVertices);
             
@@ -473,7 +478,6 @@
             }
         }
         
-        // --- START: 수정된 함수 ---
         function findOptimalSolution(vertices, objective) {
             // Step 1: Handle cases with no vertices.
             // 이 알고리즘은 교차점(꼭짓점)을 찾는 데 의존합니다.
@@ -547,7 +551,6 @@
             // Step 4: If not infeasible or unbounded, it must be optimal.
             return { type: 'optimal', vertex: bestVertex, value: bestValue };
         }
-        // --- END: 수정된 함수 ---
         
         function updateSliderRange(resetValue = false) {
             if (feasibleVertices.length > 0) {
@@ -874,3 +877,4 @@
     </script>
 </body>
 </html>
+
