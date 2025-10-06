@@ -39,8 +39,8 @@
     <div class="container mx-auto p-4 lg:p-8">
         <!-- 헤더 -->
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-indigo-600">MSC WK5 최적화 세션 : 선형계획법 그래프 Solver</h1>
-            <p class="mt-2 text-lg text-slate-600">실은 마음에 드는 LP 특화 그래핑 웹사이트가 없어서 그냥 직접 빌드해봤습니다. 깃헙 맞팔 대환영~</p>
+            <h1 class="text-4xl font-bold text-indigo-600">MSC WK5 최적화 세션 : 선형/정수계획법 그래프 Solver</h1>
+            <p class="mt-2 text-lg text-slate-600">실은 마음에 드는 LP/IP 특화 그래핑 웹사이트가 없어서 그냥 직접 빌드해봤습니다. 깃헙 맞팔 대환영~</p>
             <p class="mt-2 text-lg text-slate-600">목적 함수와 제약 조건을 입력하고 시각적인 해를 찾아보세요.</p>
         </header>
 
@@ -86,25 +86,40 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             <span>제약 조건 추가</span>
                         </button>
-                    </div>
-                     <!-- 음수 아닌 조건 -->
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center">
-                            <input id="non-negativity-x" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                            <label for="non-negativity-x" class="ml-2 block text-sm text-slate-900">x &ge; 0</label>
+                        <!-- 음수 아닌 조건 -->
+                        <div class="flex items-center space-x-4 mt-4">
+                            <div class="flex items-center">
+                                <input id="non-negativity-x" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                <label for="non-negativity-x" class="ml-2 block text-sm text-slate-900">x &ge; 0</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="non-negativity-y" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                <label for="non-negativity-y" class="ml-2 block text-sm text-slate-900">y &ge; 0</label>
+                            </div>
                         </div>
-                        <div class="flex items-center">
-                            <input id="non-negativity-y" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
-                            <label for="non-negativity-y" class="ml-2 block text-sm text-slate-900">y &ge; 0</label>
+                    </div>
+                    
+                    <!-- 3. 정수 조건 -->
+                    <div>
+                        <h2 class="text-xl font-semibold mb-3 text-slate-700">3. 정수 조건 (Integer Condition)</h2>
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <label for="integer-programming-toggle" class="flex items-center justify-between cursor-pointer">
+                                <span class="font-medium text-slate-800">정수 계획법 활성화</span>
+                                <div class="relative">
+                                    <input type="checkbox" id="integer-programming-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </div>
+                            </label>
                         </div>
                     </div>
+
                     <!-- 실행 버튼 -->
                     <button id="solve-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus-ring transition-transform transform hover:scale-105">
                         그래프 그리기
                     </button>
                 </div>
 
-                <!-- 3. 고급 기능 -->
+                <!-- 4. 고급 기능 -->
                 <div class="mt-8 pt-6 border-t border-slate-200 space-y-4">
                     <h2 class="text-xl font-semibold text-slate-700">고급 기능 (Advanced)</h2>
                     <div class="bg-slate-100 p-4 rounded-lg">
@@ -147,7 +162,7 @@
                         <!-- 최적해 정보가 여기에 표시됩니다. -->
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2 text-slate-600">꼭짓점 및 목적 함수 값</h3>
+                        <h3 class="font-semibold mb-2 text-slate-600">꼭짓점 및 목적 함수 값 (LP Relaxation)</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-slate-500">
                                 <thead class="text-xs text-slate-700 uppercase bg-slate-100">
@@ -165,7 +180,7 @@
                         </div>
                     </div>
                     <!-- NEW: 민감도 분석 -->
-                    <div id="sensitivity-analysis-container" class="mt-8 hidden">
+                    <div id="sensitivity-analysis-container" class="mt-8">
                         <h3 class="font-semibold mb-3 text-slate-600">민감도 분석 (Sensitivity Analysis)</h3>
                         <div class="space-y-6">
                             <!-- 목적 함수 계수 범위 -->
@@ -230,6 +245,7 @@
         const verticesTableBody = document.getElementById('vertices-table-body');
         const nonNegativityX = document.getElementById('non-negativity-x');
         const nonNegativityY = document.getElementById('non-negativity-y');
+        const integerProgrammingToggle = document.getElementById('integer-programming-toggle');
         
         const showObjectiveLineCheckbox = document.getElementById('show-objective-line');
         const objectiveSliderContainer = document.getElementById('objective-slider-container');
@@ -240,19 +256,15 @@
 
         let parsedConstraints = [];
         let feasibleVertices = [];
+        let feasibleIntegerPoints = [];
         let optimalSolution = null;
         let scale = 20;
         let origin = { x: 0, y: 0 };
 
         // --- 유틸리티 함수 ---
         function formatNumber(num) {
-            // Ensure num is a number before calling methods on it.
             const numValue = typeof num === 'string' ? parseFloat(num) : num;
-            
-            if (isNaN(numValue)) {
-                return "N/A"; // Or handle as an error
-            }
-
+            if (isNaN(numValue)) return "N/A";
             if (numValue === Infinity) return "∞";
             if (numValue === -Infinity) return "-∞";
             if (Math.abs(numValue) < EPSILON) return "0";
@@ -265,14 +277,12 @@
         function parseExpression(str) {
             str = str.replace(/\s/g, '');
             let xCoeff = 0, yCoeff = 0;
-
             const xMatch = str.match(/([+\-]?\d*\.?\d*)x/);
             if (xMatch) {
                 if (xMatch[1] === '' || xMatch[1] === '+') xCoeff = 1;
                 else if (xMatch[1] === '-') xCoeff = -1;
                 else xCoeff = parseFloat(xMatch[1]);
             }
-            
             const yMatch = str.match(/([+\-]?\d*\.?\d*)y/);
             if (yMatch) {
                 if (yMatch[1] === '+' || yMatch[1] === '') yCoeff = 1;
@@ -285,13 +295,10 @@
         function parseConstraint(str) {
             const match = str.match(/(.*?)(<=|>=|=)(.*)/);
             if (!match) return null;
-
             const coeffs = parseExpression(match[1]);
             const type = match[2];
             const value = parseFloat(match[3]);
-
             if (isNaN(coeffs.x) || isNaN(coeffs.y) || isNaN(value)) return null;
-
             return { coeffs, type, value, original: str };
         }
         
@@ -303,7 +310,6 @@
         }
         
         // --- 이벤트 리스너 ---
-        
         document.addEventListener('DOMContentLoaded', () => {
             const canvasContainer = canvas.parentElement;
             function resizeCanvas() {
@@ -335,18 +341,13 @@
         }
 
         showObjectiveLineCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                objectiveSliderContainer.style.display = 'block';
-                updateSliderRange(true);
-            } else {
-                objectiveSliderContainer.style.display = 'none';
-            }
+            objectiveSliderContainer.style.display = e.target.checked ? 'block' : 'none';
+            if(e.target.checked) updateSliderRange(true);
             redraw();
         });
 
         objectiveSlider.addEventListener('input', () => {
-            const zValue = parseFloat(objectiveSlider.value);
-            zValueLabel.textContent = formatNumber(zValue);
+            zValueLabel.textContent = formatNumber(objectiveSlider.value);
             redraw();
         });
 
@@ -356,7 +357,8 @@
             const mouseY = e.clientY - rect.top;
 
             let found = false;
-            for (const vertex of feasibleVertices) {
+            const allPoints = [...feasibleVertices, ...feasibleIntegerPoints];
+            for (const vertex of allPoints) {
                 const screenPos = toScreenCoords(vertex);
                 const dist = Math.sqrt(Math.pow(mouseX - screenPos.x, 2) + Math.pow(mouseY - screenPos.y, 2));
                 if (dist < 8) {
@@ -368,15 +370,12 @@
                     break;
                 }
             }
-
-            if (!found) {
-                tooltip.style.opacity = '0';
-            }
+            if (!found) tooltip.style.opacity = '0';
         });
         
         exportPngButton.addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = 'linear-programming-graph.png';
+            link.download = 'lp-ip-solver-graph.png';
             link.href = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
             link.click();
         });
@@ -401,7 +400,6 @@
                     const c1 = parsedConstraints[i];
                     const c2 = parsedConstraints[j];
                     const det = c1.coeffs.x * c2.coeffs.y - c1.coeffs.y * c2.coeffs.x;
-
                     if (Math.abs(det) > EPSILON) {
                         const x = (c2.coeffs.y * c1.value - c1.coeffs.y * c2.value) / det;
                         const y = (c1.coeffs.x * c2.value - c2.coeffs.x * c1.value) / det;
@@ -410,28 +408,26 @@
                 }
             }
             
-            feasibleVertices = intersectionPoints.filter(p => {
-                return parsedConstraints.every(c => checkConstraint(c, p));
-            });
-            
-            feasibleVertices = feasibleVertices.filter((v, i, a) => 
-                a.findIndex(t => (Math.abs(t.x - v.x) < EPSILON && Math.abs(t.y - v.y) < EPSILON)) === i
-            );
+            feasibleVertices = intersectionPoints.filter(p => parsedConstraints.every(c => checkConstraint(c, p)));
+            feasibleVertices = feasibleVertices.filter((v, i, a) => a.findIndex(t => (Math.abs(t.x - v.x) < EPSILON && Math.abs(t.y - v.y) < EPSILON)) === i);
             
             if (feasibleVertices.length > 2) {
                 const center = feasibleVertices.reduce((acc, p) => ({x: acc.x + p.x, y: acc.y + p.y}), {x:0, y:0});
                 center.x /= feasibleVertices.length;
                 center.y /= feasibleVertices.length;
-                feasibleVertices.sort((a, b) => {
-                    const angleA = Math.atan2(a.y - center.y, a.x - center.x);
-                    const angleB = Math.atan2(b.y - center.y, b.x - center.x);
-                    return angleA - angleB;
-                });
+                feasibleVertices.sort((a, b) => Math.atan2(a.y - center.y, a.x - center.x) - Math.atan2(b.y - center.y, b.x - center.x));
             }
 
-            optimalSolution = findOptimalSolution(feasibleVertices, objectiveFunction);
-            updateSliderRange(true);
+            if (integerProgrammingToggle.checked) {
+                const lpSolution = findOptimalSolution(feasibleVertices, objectiveFunction);
+                feasibleIntegerPoints = findFeasibleIntegerPoints(feasibleVertices, lpSolution);
+                optimalSolution = findIntegerOptimalSolution(feasibleIntegerPoints, objectiveFunction);
+            } else {
+                feasibleIntegerPoints = [];
+                optimalSolution = findOptimalSolution(feasibleVertices, objectiveFunction);
+            }
             
+            updateSliderRange(true);
             redraw();
             displayResults(objectiveFunction);
         }
@@ -443,32 +439,33 @@
             clearCanvas();
             setupCoordinateSystem();
             drawGrid();
+            if (integerProgrammingToggle.checked) drawIntegerGrid();
             drawAxes();
             
-            // 해가 무한한(unbounded) 경우에는 실행 가능 영역을 색칠하지 않습니다.
             if (optimalSolution && optimalSolution.type !== 'unbounded') {
                  drawFeasibleRegion(feasibleVertices);
+            }
+            
+            if (integerProgrammingToggle.checked) {
+                drawFeasibleIntegerPoints(feasibleIntegerPoints);
             }
             
             drawConstraintLines();
             drawVertices(feasibleVertices);
             
             if (optimalSolution) {
-                 if (optimalSolution.type === 'optimal' && optimalSolution.vertex) {
-                    drawOptimalVertices([optimalSolution.vertex]);
-                 } else if (optimalSolution.type === 'multiple' && optimalSolution.vertices) {
-                    drawOptimalVertices(optimalSolution.vertices);
+                 if (optimalSolution.type === 'optimal' || optimalSolution.type === 'multiple') {
+                    drawOptimalVertices(optimalSolution.vertices || [optimalSolution.vertex]);
+                 } else if (optimalSolution.type === 'integer-optimal') {
+                    drawOptimalVertices([optimalSolution.vertex], true);
                  }
             }
 
             if (showObjectiveLineCheckbox.checked) {
                 const zValue = parseFloat(objectiveSlider.value);
                 drawObjectiveLine(objectiveFunction, zValue);
-            } else {
-                // Draw the optimal line by default if a solution exists
-                if ((optimalSolution.type === 'optimal' || optimalSolution.type === 'multiple') && optimalSolution.value !== undefined) {
-                    drawObjectiveLine(objectiveFunction, optimalSolution.value);
-                }
+            } else if (optimalSolution && optimalSolution.value !== undefined) {
+                drawObjectiveLine(objectiveFunction, optimalSolution.value);
             }
         }
 
@@ -483,10 +480,7 @@
         }
         
         function findOptimalSolution(vertices, objective) {
-            if (vertices.length === 0) {
-                return { type: 'infeasible' };
-            }
-
+            if (vertices.length === 0) return { type: 'infeasible' };
             let bestVertices = [];
             let bestValue = objectiveTypeSelect.value === 'maximize' ? -Infinity : Infinity;
             const isMaximize = objectiveTypeSelect.value === 'maximize';
@@ -494,10 +488,8 @@
             vertices.forEach(v => {
                 const z = objective.coeffs.x * v.x + objective.coeffs.y * v.y;
                 v.z = z;
-
                 const isBetter = isMaximize ? (z > bestValue + EPSILON) : (z < bestValue - EPSILON);
                 const isEqual = Math.abs(z - bestValue) < EPSILON;
-
                 if (isBetter) {
                     bestValue = z;
                     bestVertices = [v];
@@ -506,11 +498,7 @@
                 }
             });
 
-            if (bestVertices.length === 0) {
-                return { type: 'infeasible' };
-            }
-
-            // Unboundedness check
+            if (bestVertices.length === 0) return { type: 'infeasible' };
             const testVertex = bestVertices[0];
             const LARGE_NUMBER = 1e7;
             const { x: c1, y: c2 } = objective.coeffs;
@@ -518,10 +506,7 @@
             let dy = isMaximize ? c2 : -c2;
 
             if (Math.abs(dx) < EPSILON && Math.abs(dy) < EPSILON) {
-                if (bestVertices.length > 1) {
-                     return { type: 'multiple', vertices: bestVertices, value: bestValue };
-                }
-                return { type: 'optimal', vertex: bestVertices[0], value: bestValue };
+                 return bestVertices.length > 1 ? { type: 'multiple', vertices: bestVertices, value: bestValue } : { type: 'optimal', vertex: bestVertices[0], value: bestValue };
             }
 
             const magnitude = Math.sqrt(dx*dx + dy*dy);
@@ -529,33 +514,60 @@
                 dx /= magnitude;
                 dy /= magnitude;
             }
+            const testPoint = { x: testVertex.x + LARGE_NUMBER * dx, y: testVertex.y + LARGE_NUMBER * dy };
+            if (parsedConstraints.every(c => checkConstraint(c, testPoint))) return { type: 'unbounded' };
+            
+            return bestVertices.length > 1 ? { type: 'multiple', vertices: bestVertices, value: bestValue } : { type: 'optimal', vertex: bestVertices[0], value: bestValue };
+        }
 
-            const testPoint = {
-                x: testVertex.x + LARGE_NUMBER * dx,
-                y: testVertex.y + LARGE_NUMBER * dy
-            };
+        function findFeasibleIntegerPoints(vertices, lpSolution) {
+            if (vertices.length === 0 || lpSolution.type === 'infeasible') return [];
+            if (lpSolution.type === 'unbounded') return []; // Cannot search unbounded region
 
-            if (parsedConstraints.every(c => checkConstraint(c, testPoint))) {
-                return { type: 'unbounded' };
+            const minX = Math.floor(Math.min(...vertices.map(v => v.x)) - 1);
+            const maxX = Math.ceil(Math.max(...vertices.map(v => v.x)) + 1);
+            const minY = Math.floor(Math.min(...vertices.map(v => v.y)) - 1);
+            const maxY = Math.ceil(Math.max(...vertices.map(v => v.y)) + 1);
+            
+            const integerPoints = [];
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    const point = { x, y };
+                    if (parsedConstraints.every(c => checkConstraint(c, point))) {
+                        integerPoints.push(point);
+                    }
+                }
             }
+            return integerPoints;
+        }
 
-            // Final decision
-            if (bestVertices.length > 1) {
-                return { type: 'multiple', vertices: bestVertices, value: bestValue };
-            } else {
-                return { type: 'optimal', vertex: bestVertices[0], value: bestValue };
+        function findIntegerOptimalSolution(integerPoints, objective) {
+            if (integerPoints.length === 0) {
+                return { type: 'infeasible' };
             }
+            let bestPoint = null;
+            let bestValue = objectiveTypeSelect.value === 'maximize' ? -Infinity : Infinity;
+            const isMaximize = objectiveTypeSelect.value === 'maximize';
+
+            integerPoints.forEach(p => {
+                const z = objective.coeffs.x * p.x + objective.coeffs.y * p.y;
+                if (isMaximize ? (z > bestValue) : (z < bestValue)) {
+                    bestValue = z;
+                    bestPoint = p;
+                }
+            });
+            return { type: 'integer-optimal', vertex: bestPoint, value: bestValue };
         }
         
         function updateSliderRange(resetValue = false) {
-            if (feasibleVertices.length > 0) {
-                const zValues = feasibleVertices.map(v => v.z).filter(z => isFinite(z));
+            const points = feasibleVertices;
+            if (points.length > 0) {
+                const zValues = points.map(v => v.z).filter(z => isFinite(z));
                 if (zValues.length === 0) {
                      objectiveSlider.min = 0; objectiveSlider.max = 100; objectiveSlider.value = 50;
                      zValueLabel.textContent = "";
                      return;
                 }
-
                 const minZ = Math.min(...zValues);
                 const maxZ = Math.max(...zValues);
                 objectiveSlider.min = minZ;
@@ -563,11 +575,12 @@
                 
                 if (resetValue && optimalSolution && optimalSolution.value !== undefined && isFinite(optimalSolution.value)) {
                     objectiveSlider.value = optimalSolution.value;
+                } else {
+                    objectiveSlider.value = (minZ + maxZ) / 2;
                 }
                 
                 if (parseFloat(objectiveSlider.value) < minZ) objectiveSlider.value = minZ;
                 if (parseFloat(objectiveSlider.value) > maxZ) objectiveSlider.value = maxZ;
-                
                 zValueLabel.textContent = formatNumber(objectiveSlider.value);
             } else {
                 objectiveSlider.min = 0;
@@ -578,28 +591,15 @@
         }
         
         // --- 그리기 함수 ---
-
-        function toScreenCoords(point) {
-            return {
-                x: origin.x + point.x * scale,
-                y: origin.y - point.y * scale
-            };
-        }
-
-        function clearCanvas() {
-             ctx.fillStyle = '#f8fafc';
-             ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+        function toScreenCoords(point) { return { x: origin.x + point.x * scale, y: origin.y - point.y * scale }; }
+        function clearCanvas() { ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
         function setupCoordinateSystem() {
             let allPoints = feasibleVertices.length > 0 ? [...feasibleVertices] : [{x:10, y:10}];
             let maxX = 0, maxY = 0;
-            allPoints.forEach(p => {
-                maxX = Math.max(maxX, Math.abs(p.x));
-                maxY = Math.max(maxY, Math.abs(p.y));
-            });
+            allPoints.forEach(p => { maxX = Math.max(maxX, Math.abs(p.x)); maxY = Math.max(maxY, Math.abs(p.y)); });
             let maxDim = Math.max(maxX, maxY, 10) * 1.2;
-
+            if (maxDim <= 0 || !isFinite(maxDim)) maxDim = 10;
             if (nonNegativityX.checked && nonNegativityY.checked) {
                  scale = Math.min( (canvas.width-80) / maxDim, (canvas.height-80) / maxDim);
                  origin = {x: 50, y: canvas.height - 50};
@@ -607,17 +607,16 @@
                 scale = Math.min(canvas.width / (2 * maxDim), canvas.height / (2 * maxDim));
                 origin = { x: canvas.width / 2, y: canvas.height / 2 };
             }
+            if (scale <= 0 || !isFinite(scale)) scale = 20;
         }
         
         function drawAxes() {
             ctx.beginPath();
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;
             ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y);
             ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
             ctx.stroke();
-            ctx.fillStyle = '#334155';
-            ctx.font = '14px Inter';
+            ctx.fillStyle = '#334155'; ctx.font = '14px Inter';
             ctx.fillText('x', canvas.width - 20, origin.y - 10);
             ctx.fillText('y', origin.x + 10, 20);
         }
@@ -628,48 +627,36 @@
             const exponent = Math.floor(Math.log10(roughStep));
             const powerOf10 = Math.pow(10, exponent);
             const fraction = roughStep / powerOf10;
-
             let niceFraction;
             if (fraction <= 1) niceFraction = 1;
             else if (fraction <= 2) niceFraction = 2;
             else if (fraction <= 5) niceFraction = 5;
             else niceFraction = 10;
-            
             return niceFraction * powerOf10;
         }
 
         function drawGrid() {
             ctx.beginPath();
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 1;
-            ctx.fillStyle = '#64748b';
-            ctx.font = '12px Inter';
-
+            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+            ctx.fillStyle = '#64748b'; ctx.font = '12px Inter';
             const viewWidth = canvas.width / scale;
             const viewHeight = canvas.height / scale;
             const step = calculateNiceStep(Math.max(viewWidth, viewHeight), 10);
             if (step <= 0) return;
-            
-            for (let i = 1; origin.x + i * step * scale < canvas.width; i++) {
-                const x = i * step; const sx = origin.x + x * scale;
-                ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height);
-                ctx.fillText(formatNumber(x), sx + 5, origin.y + 15);
-            }
-            for (let i = -1; origin.x + i * step * scale > 0; i--) {
-                const x = i * step; const sx = origin.x + x * scale;
-                ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height);
-                ctx.fillText(formatNumber(x), sx + 5, origin.y + 15);
-            }
-            for (let i = 1; origin.y - i * step * scale > 0; i++) {
-                const y = i * step; const sy = origin.y - y * scale;
-                ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy);
-                ctx.fillText(formatNumber(y), origin.x + 5, sy - 5);
-            }
-            for (let i = -1; origin.y - i * step * scale < canvas.height; i--) {
-                const y = i * step; const sy = origin.y - y * scale;
-                ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy);
-                ctx.fillText(formatNumber(y), origin.x + 5, sy - 5);
-            }
+            for (let i = 1; origin.x + i * step * scale < canvas.width; i++) { const x = i * step; const sx = origin.x + x * scale; ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height); ctx.fillText(formatNumber(x), sx + 5, origin.y + 15); }
+            for (let i = -1; origin.x + i * step * scale > 0; i--) { const x = i * step; const sx = origin.x + x * scale; ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height); ctx.fillText(formatNumber(x), sx + 5, origin.y + 15); }
+            for (let i = 1; origin.y - i * step * scale > 0; i++) { const y = i * step; const sy = origin.y - y * scale; ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy); ctx.fillText(formatNumber(y), origin.x + 5, sy - 5); }
+            for (let i = -1; origin.y - i * step * scale < canvas.height; i--) { const y = i * step; const sy = origin.y - y * scale; ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy); ctx.fillText(formatNumber(y), origin.x + 5, sy - 5); }
+            ctx.stroke();
+        }
+
+        function drawIntegerGrid() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 0.5;
+            for (let i = 1; origin.x + i * scale < canvas.width; i++) { const sx = origin.x + i * scale; ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height); }
+            for (let i = -1; origin.x + i * scale > 0; i--) { const sx = origin.x + i * scale; ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height); }
+            for (let i = 1; origin.y - i * scale > 0; i++) { const sy = origin.y - i * scale; ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy); }
+            for (let i = -1; origin.y - i * scale < canvas.height; i--) { const sy = origin.y - i * scale; ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy); }
             ctx.stroke();
         }
         
@@ -679,13 +666,9 @@
                 ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 2;
                 const { x: a, y: b } = c.coeffs; const val = c.value;
                 let x1, y1, x2, y2;
-                if (Math.abs(b) > EPSILON) {
-                    x1 = (-origin.x) / scale; y1 = (val - a * x1) / b;
-                    x2 = (canvas.width - origin.x) / scale; y2 = (val - a * x2) / b;
-                } else if (Math.abs(a) > EPSILON) {
-                    y1 = (canvas.height - origin.y) / scale; x1 = (val - b * y1) / a;
-                    y2 = (-origin.y) / scale; x2 = (val - b * y2) / a;
-                } else return;
+                if (Math.abs(b) > EPSILON) { x1 = (-origin.x) / scale; y1 = (val - a * x1) / b; x2 = (canvas.width - origin.x) / scale; y2 = (val - a * x2) / b; } 
+                else if (Math.abs(a) > EPSILON) { y1 = (canvas.height - origin.y) / scale; x1 = (val - b * y1) / a; y2 = (-origin.y) / scale; x2 = (val - b * y2) / a; } 
+                else return;
                 const p1 = toScreenCoords({x: x1, y: y1});
                 const p2 = toScreenCoords({x: x2, y: y2});
                 ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
@@ -695,24 +678,23 @@
         
         function drawFeasibleRegion(vertices) {
             if (vertices.length < 2) return;
-            if (vertices.length === 2) { 
-                ctx.beginPath();
-                const p1 = toScreenCoords(vertices[0]);
-                const p2 = toScreenCoords(vertices[1]);
-                ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-                ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 3;
-                ctx.stroke();
-                return;
-            }
             ctx.beginPath();
             const startPoint = toScreenCoords(vertices[0]);
             ctx.moveTo(startPoint.x, startPoint.y);
-            for (let i = 1; i < vertices.length; i++) {
-                ctx.lineTo(toScreenCoords(vertices[i]).x, toScreenCoords(vertices[i]).y);
-            }
+            for (let i = 1; i < vertices.length; i++) { ctx.lineTo(toScreenCoords(vertices[i]).x, toScreenCoords(vertices[i]).y); }
             ctx.closePath();
             ctx.fillStyle = 'rgba(129, 140, 248, 0.3)'; ctx.fill();
             ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2; ctx.stroke();
+        }
+
+        function drawFeasibleIntegerPoints(points) {
+            points.forEach(p => {
+                const screenPos = toScreenCoords(p);
+                ctx.beginPath();
+                ctx.arc(screenPos.x, screenPos.y, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(30, 64, 175, 0.5)';
+                ctx.fill();
+            });
         }
 
         function drawVertices(vertices) {
@@ -721,8 +703,7 @@
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
                 ctx.fillStyle = 'white'; ctx.fill();
-                ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.strokeStyle = '#4f46e5'; ctx.lineWidth = 2; ctx.stroke();
                 ctx.fillStyle = '#1e293b'; ctx.font = 'bold 12px Inter';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(`V${index + 1}`, p.x, p.y - 15);
@@ -730,29 +711,24 @@
             ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
         }
 
-        function drawOptimalVertices(vertices) {
-            // Draw connecting line first if there are two vertices
-            if (vertices.length === 2) {
+        function drawOptimalVertices(vertices, isInteger = false) {
+            if (!isInteger && vertices.length === 2) {
                 ctx.beginPath();
-                const p1 = toScreenCoords(vertices[0]);
-                const p2 = toScreenCoords(vertices[1]);
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.strokeStyle = '#f59e0b';
-                ctx.lineWidth = 5; // Make the optimal line thicker
-                ctx.stroke();
+                const p1 = toScreenCoords(vertices[0]); const p2 = toScreenCoords(vertices[1]);
+                ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 5; ctx.stroke();
             }
-
-            // Draw each vertex on top
             vertices.forEach(vertex => {
                 const p = toScreenCoords(vertex);
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
-                ctx.fillStyle = '#f59e0b';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                if (isInteger) {
+                    ctx.rect(p.x - 7, p.y - 7, 14, 14);
+                    ctx.fillStyle = '#d97706'; ctx.fill();
+                } else {
+                    ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#f59e0b'; ctx.fill();
+                }
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
             });
         }
         
@@ -760,20 +736,11 @@
             if (isNaN(z) || !isFinite(z)) return;
             const {x: a, y: b} = objective.coeffs;
             if (Math.abs(a) < EPSILON && Math.abs(b) < EPSILON) return;
-            
             ctx.beginPath();
-            ctx.strokeStyle = '#f59e0b'; 
-            ctx.lineWidth = 2; 
-            ctx.setLineDash([5, 5]);
-            
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
             let x1, y1, x2, y2;
-             if (Math.abs(b) > EPSILON) {
-                x1 = -origin.x / scale; y1 = (z - a * x1) / b;
-                x2 = (canvas.width - origin.x) / scale; y2 = (z - a * x2) / b;
-            } else {
-                y1 = -origin.y / scale; x1 = (z - b * y1) / a;
-                y2 = (canvas.height - origin.y) / scale; x2 = (z - b * y2) / a;
-            }
+             if (Math.abs(b) > EPSILON) { x1 = -origin.x / scale; y1 = (z - a * x1) / b; x2 = (canvas.width - origin.x) / scale; y2 = (z - a * x2) / b; } 
+             else { y1 = -origin.y / scale; x1 = (z - b * y1) / a; y2 = (canvas.height - origin.y) / scale; x2 = (z - b * y2) / a; }
             const p1 = toScreenCoords({x: x1, y: y1});
             const p2 = toScreenCoords({x: x2, y: y2});
             ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
@@ -786,99 +753,87 @@
             resultsContainer.classList.remove('hidden');
             solutionSummary.innerHTML = '';
             verticesTableBody.innerHTML = '';
-            solutionSummary.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800');
+            solutionSummary.className = 'p-4 rounded-lg mb-4 text-center'; // Reset classes
 
-            if (optimalSolution.type === 'infeasible') {
-                 solutionSummary.classList.add('bg-red-100', 'text-red-800');
-                 solutionSummary.innerHTML = `<p class="font-bold">해가 없음 (Infeasible)</p><p>모든 제약 조건을 만족하는 영역이 존재하지 않습니다.</p>`;
-                 document.getElementById('sensitivity-analysis-container').classList.add('hidden');
-                 return;
-            }
-             if (optimalSolution.type === 'unbounded') {
-                 solutionSummary.classList.add('bg-yellow-100', 'text-yellow-800');
-                 solutionSummary.innerHTML = `<p class="font-bold">해가 무한함 (Unbounded)</p><p>목적 함수 값이 무한히 커지거나 작아질 수 있습니다.</p>`;
-                 document.getElementById('sensitivity-analysis-container').classList.add('hidden');
-                 // Do not return early, still show vertices if any were found
-            }
-            if (optimalSolution.type === 'multiple') {
-                solutionSummary.classList.add('bg-green-100', 'text-green-800');
-                const typeText = objectiveTypeSelect.value === 'maximize' ? '최댓값' : '최솟값';
-                const v1 = optimalSolution.vertices[0];
-                const v2 = optimalSolution.vertices[1];
-                solutionSummary.innerHTML = `
-                    <p class="font-bold">복수 최적해 발견! (Multiple Optimal Solutions)</p>
-                    <p>선분 <strong>(${formatNumber(v1.x)}, ${formatNumber(v1.y)})</strong> - <strong>(${formatNumber(v2.x)}, ${formatNumber(v2.y)})</strong> 위의 모든 점에서</p>
-                    <p>목적 함수의 <strong>${typeText} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>
-                `;
-            }
-            if(optimalSolution.type === 'optimal' && optimalSolution.vertex) {
-                solutionSummary.classList.add('bg-green-100', 'text-green-800');
-                const typeText = objectiveTypeSelect.value === 'maximize' ? '최댓값' : '최솟값';
-                solutionSummary.innerHTML = `
-                    <p class="font-bold">최적해 발견!</p>
-                    <p><strong>(x, y) = (${formatNumber(optimalSolution.vertex.x)}, ${formatNumber(optimalSolution.vertex.y)})</strong>에서</p>
-                    <p>목적 함수의 <strong>${typeText} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>
-                `;
+            switch (optimalSolution.type) {
+                case 'infeasible':
+                    solutionSummary.classList.add('bg-red-100', 'text-red-800');
+                    solutionSummary.innerHTML = integerProgrammingToggle.checked 
+                        ? `<p class="font-bold">정수해 없음 (No Integer Solution)</p><p>실행 가능 영역 내에 정수해를 찾을 수 없습니다.</p>`
+                        : `<p class="font-bold">해가 없음 (Infeasible)</p><p>모든 제약 조건을 만족하는 영역이 존재하지 않습니다.</p>`;
+                    break;
+                case 'unbounded':
+                    solutionSummary.classList.add('bg-yellow-100', 'text-yellow-800');
+                    solutionSummary.innerHTML = `<p class="font-bold">해가 무한함 (Unbounded)</p><p>목적 함수 값이 무한히 커지거나 작아질 수 있습니다.</p>`;
+                    break;
+                case 'integer-optimal':
+                    solutionSummary.classList.add('bg-indigo-100', 'text-indigo-800');
+                    const typeTextIP = objectiveTypeSelect.value === 'maximize' ? '최댓값' : '최솟값';
+                    solutionSummary.innerHTML = `
+                        <p class="font-bold">정수 최적해 발견!</p>
+                        <p><strong>(x, y) = (${formatNumber(optimalSolution.vertex.x)}, ${formatNumber(optimalSolution.vertex.y)})</strong>에서</p>
+                        <p>목적 함수의 <strong>${typeTextIP} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>`;
+                    break;
+                case 'multiple':
+                case 'optimal':
+                    solutionSummary.classList.add('bg-green-100', 'text-green-800');
+                    const typeTextLP = objectiveTypeSelect.value === 'maximize' ? '최댓값' : '최솟값';
+                    if (optimalSolution.type === 'multiple') {
+                        const v1 = optimalSolution.vertices[0]; const v2 = optimalSolution.vertices[1];
+                        solutionSummary.innerHTML = `
+                            <p class="font-bold">복수 최적해 발견! (Multiple Optimal Solutions)</p>
+                            <p>선분 <strong>(${formatNumber(v1.x)}, ${formatNumber(v1.y)})</strong> - <strong>(${formatNumber(v2.x)}, ${formatNumber(v2.y)})</strong> 위의 모든 점에서</p>
+                            <p>목적 함수의 <strong>${typeTextLP} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>`;
+                    } else {
+                        solutionSummary.innerHTML = `
+                            <p class="font-bold">최적해 발견!</p>
+                            <p><strong>(x, y) = (${formatNumber(optimalSolution.vertex.x)}, ${formatNumber(optimalSolution.vertex.y)})</strong>에서</p>
+                            <p>목적 함수의 <strong>${typeTextLP} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>`;
+                    }
+                    break;
             }
 
             feasibleVertices.forEach((v, index) => {
-                let isOptimal = false;
-                if (optimalSolution.type === 'optimal' && optimalSolution.vertex) {
-                    isOptimal = Math.abs(v.x - optimalSolution.vertex.x) < EPSILON && Math.abs(v.y - optimalSolution.vertex.y) < EPSILON;
-                } else if (optimalSolution.type === 'multiple' && optimalSolution.vertices) {
-                    isOptimal = optimalSolution.vertices.some(ov => Math.abs(v.x - ov.x) < EPSILON && Math.abs(v.y - ov.y) < EPSILON);
+                let isLPOptimal = false;
+                const solution = integerProgrammingToggle.checked ? findOptimalSolution(feasibleVertices, objectiveFunction) : optimalSolution;
+                if (solution.type === 'optimal') {
+                    isLPOptimal = Math.abs(v.x - solution.vertex.x) < EPSILON && Math.abs(v.y - solution.vertex.y) < EPSILON;
+                } else if (solution.type === 'multiple') {
+                    isLPOptimal = solution.vertices.some(ov => Math.abs(v.x - ov.x) < EPSILON && Math.abs(v.y - ov.y) < EPSILON);
                 }
-
                 const row = document.createElement('tr');
-                row.className = isOptimal ? 'bg-amber-100 font-bold' : 'bg-white';
-                row.innerHTML = `
-                    <td class="px-6 py-4">V${index + 1}</td>
-                    <td class="px-6 py-4">${formatNumber(v.x)}</td>
-                    <td class="px-6 py-4">${formatNumber(v.y)}</td>
-                    <td class="px-6 py-4">${formatNumber(v.z)}</td>
-                `;
+                row.className = isLPOptimal ? 'bg-amber-100 font-bold' : 'bg-white';
+                row.innerHTML = `<td class="px-6 py-4">V${index + 1}</td> <td class="px-6 py-4">${formatNumber(v.x)}</td> <td class="px-6 py-4">${formatNumber(v.y)}</td> <td class="px-6 py-4">${formatNumber(v.z)}</td>`;
                 verticesTableBody.appendChild(row);
             });
-            calculateAndDisplaySensitivityAnalysis(objectiveFunction);
+            
+            const sensContainer = document.getElementById('sensitivity-analysis-container');
+            const lpSolutionForSens = findOptimalSolution(feasibleVertices, objectiveFunction);
+            if (integerProgrammingToggle.checked || lpSolutionForSens.type !== 'optimal') {
+                sensContainer.classList.add('hidden');
+            } else {
+                sensContainer.classList.remove('hidden');
+                calculateAndDisplaySensitivityAnalysis(objectiveFunction, lpSolutionForSens);
+            }
         }
         
-        function calculateAndDisplaySensitivityAnalysis(objectiveFunction) {
-            const sensitivityContainer = document.getElementById('sensitivity-analysis-container');
+        function calculateAndDisplaySensitivityAnalysis(objectiveFunction, lpOptimal) {
             const optimalityBody = document.getElementById('optimality-range-table-body');
             const shadowBody = document.getElementById('shadow-price-table-body');
             optimalityBody.innerHTML = ''; shadowBody.innerHTML = '';
 
-            if (!optimalSolution || optimalSolution.type !== 'optimal' || !optimalSolution.vertex) {
-                sensitivityContainer.classList.add('hidden'); return;
-            }
-            sensitivityContainer.classList.remove('hidden');
-            const v_opt = optimalSolution.vertex;
+            if (!lpOptimal || lpOptimal.type !== 'optimal' || !lpOptimal.vertex) return;
+            
+            const v_opt = lpOptimal.vertex;
             const c1 = objectiveFunction.coeffs.x; const c2 = objectiveFunction.coeffs.y;
-
-            const bindingConstraints = parsedConstraints.filter(c => 
-                Math.abs(c.coeffs.x * v_opt.x + c.coeffs.y * v_opt.y - c.value) < EPSILON
-            );
+            const bindingConstraints = parsedConstraints.filter(c => Math.abs(c.coeffs.x * v_opt.x + c.coeffs.y * v_opt.y - c.value) < EPSILON);
 
             if (bindingConstraints.length >= 2) {
-                const slopes = [];
-                bindingConstraints.forEach(c => {
-                    if (Math.abs(c.coeffs.y) > EPSILON) slopes.push(-c.coeffs.x / c.coeffs.y);
-                    else if (Math.abs(c.coeffs.x) > EPSILON) slopes.push(c.coeffs.x > 0 ? Infinity : -Infinity);
-                });
+                const slopes = bindingConstraints.map(c => Math.abs(c.coeffs.y) > EPSILON ? -c.coeffs.x / c.coeffs.y : (c.coeffs.x > 0 ? Infinity : -Infinity));
                 const minSlope = Math.min(...slopes); const maxSlope = Math.max(...slopes);
-
                 let c1_l = -Infinity, c1_u = Infinity, c2_l = -Infinity, c2_u = Infinity;
-                if (Math.abs(c2) > EPSILON) {
-                    const b1 = -c2 * minSlope; const b2 = -c2 * maxSlope;
-                    c1_l = Math.min(b1, b2); c1_u = Math.max(b1, b2);
-                }
-                if (Math.abs(c1) > EPSILON) {
-                    if (minSlope * maxSlope <= 0) { /* Crosses zero, range is split */ } 
-                    else {
-                        const b1 = -c1 / minSlope; const b2 = -c1 / maxSlope;
-                        c2_l = Math.min(b1, b2); c2_u = Math.max(b1, b2);
-                    }
-                }
+                if (Math.abs(c2) > EPSILON) { const b1 = -c2 * minSlope; const b2 = -c2 * maxSlope; c1_l = Math.min(b1, b2); c1_u = Math.max(b1, b2); }
+                if (Math.abs(c1) > EPSILON && minSlope * maxSlope > 0) { const b1 = -c1 / minSlope; const b2 = -c1 / maxSlope; c2_l = Math.min(b1, b2); c2_u = Math.max(b1, b2); }
                 optimalityBody.innerHTML = `
                     <tr><td class="px-6 py-4">x의 계수 (c1)</td><td class="px-6 py-4">${formatNumber(c1_l)}</td><td class="px-6 py-4">${formatNumber(c1)}</td><td class="px-6 py-4">${formatNumber(c1_u)}</td></tr>
                     <tr><td class="px-6 py-4">y의 계수 (c2)</td><td class="px-6 py-4">${formatNumber(c2_l)}</td><td class="px-6 py-4">${formatNumber(c2)}</td><td class="px-6 py-4">${formatNumber(c2_u)}</td></tr>`;
@@ -894,7 +849,7 @@
                         if (Math.abs(det) > EPSILON) {
                             const x_new = (p2.coeffs.y * p1.value - p1.coeffs.y * p2.value) / det;
                             const y_new = (p1.coeffs.x * p2.value - p2.coeffs.x * p1.value) / det;
-                            shadowPrice = (c1 * x_new + c2 * y_new) - optimalSolution.value;
+                            shadowPrice = (c1 * x_new + c2 * y_new) - lpOptimal.value;
                         }
                     }
                 }
