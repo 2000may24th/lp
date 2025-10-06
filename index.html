@@ -453,8 +453,12 @@
             drawConstraintLines();
             drawVertices(feasibleVertices);
             
-            if (optimalSolution && optimalSolution.vertex) {
-                drawOptimalVertex(optimalSolution.vertex);
+            if (optimalSolution) {
+                 if (optimalSolution.type === 'optimal' && optimalSolution.vertex) {
+                    drawOptimalVertices([optimalSolution.vertex]);
+                 } else if (optimalSolution.type === 'multiple' && optimalSolution.vertices) {
+                    drawOptimalVertices(optimalSolution.vertices);
+                 }
             }
 
             if (showObjectiveLineCheckbox.checked) {
@@ -462,7 +466,7 @@
                 drawObjectiveLine(objectiveFunction, zValue);
             } else {
                 // Draw the optimal line by default if a solution exists
-                if (optimalSolution && optimalSolution.type === 'optimal' && optimalSolution.vertex) {
+                if ((optimalSolution.type === 'optimal' || optimalSolution.type === 'multiple') && optimalSolution.value !== undefined) {
                     drawObjectiveLine(objectiveFunction, optimalSolution.value);
                 }
             }
@@ -479,56 +483,47 @@
         }
         
         function findOptimalSolution(vertices, objective) {
-            // Step 1: Handle cases with no vertices.
-            // 이 알고리즘은 교차점(꼭짓점)을 찾는 데 의존합니다.
-            // 만약 가능한 꼭짓점을 찾지 못하면, 실행 불가능(infeasible)으로 가정합니다.
-            // 이는 모서리가 없는 영역(예: x > 1)에 대한 한계이지만, 그래픽 접근 방식에 내재된 부분입니다.
             if (vertices.length === 0) {
                 return { type: 'infeasible' };
             }
 
-            // Step 2: Find the best vertex among the candidates.
-            let bestVertex = null;
+            let bestVertices = [];
             let bestValue = objectiveTypeSelect.value === 'maximize' ? -Infinity : Infinity;
             const isMaximize = objectiveTypeSelect.value === 'maximize';
 
             vertices.forEach(v => {
                 const z = objective.coeffs.x * v.x + objective.coeffs.y * v.y;
-                v.z = z; // Store z-value for table display
-                if (isMaximize) {
-                    if (z > bestValue) {
-                        bestValue = z;
-                        bestVertex = v;
-                    }
-                } else { // Minimize
-                    if (z < bestValue) {
-                        bestValue = z;
-                        bestVertex = v;
-                    }
+                v.z = z;
+
+                const isBetter = isMaximize ? (z > bestValue + EPSILON) : (z < bestValue - EPSILON);
+                const isEqual = Math.abs(z - bestValue) < EPSILON;
+
+                if (isBetter) {
+                    bestValue = z;
+                    bestVertices = [v];
+                } else if (isEqual) {
+                    bestVertices.push(v);
                 }
             });
-            
-            // This should not happen if vertices.length > 0, but as a safeguard:
-            if (!bestVertex) {
+
+            if (bestVertices.length === 0) {
                 return { type: 'infeasible' };
             }
 
-            // Step 3: Check for unboundedness.
-            // Heuristic: From the best vertex, take a large step in the direction of optimization.
-            // If the new point is still feasible, the solution is unbounded.
-            const LARGE_NUMBER = 1e7; // Using a larger number for robustness
+            // Unboundedness check
+            const testVertex = bestVertices[0];
+            const LARGE_NUMBER = 1e7;
             const { x: c1, y: c2 } = objective.coeffs;
-
-            // Direction vector for optimization
             let dx = isMaximize ? c1 : -c1;
             let dy = isMaximize ? c2 : -c2;
 
-            // If objective function is zero, any point is optimal, and it's not unbounded.
             if (Math.abs(dx) < EPSILON && Math.abs(dy) < EPSILON) {
-                return { type: 'optimal', vertex: bestVertex, value: bestValue };
+                if (bestVertices.length > 1) {
+                     return { type: 'multiple', vertices: bestVertices, value: bestValue };
+                }
+                return { type: 'optimal', vertex: bestVertices[0], value: bestValue };
             }
-            
-            // Normalizing the direction vector can prevent issues with very large coefficients
+
             const magnitude = Math.sqrt(dx*dx + dy*dy);
             if (magnitude > EPSILON) {
                 dx /= magnitude;
@@ -536,20 +531,20 @@
             }
 
             const testPoint = {
-                x: bestVertex.x + LARGE_NUMBER * dx,
-                y: bestVertex.y + LARGE_NUMBER * dy
+                x: testVertex.x + LARGE_NUMBER * dx,
+                y: testVertex.y + LARGE_NUMBER * dy
             };
 
-            // Check if this distant point satisfies ALL constraints.
-            const isStillFeasible = parsedConstraints.every(c => checkConstraint(c, testPoint));
-            
-            if (isStillFeasible) {
-                // If a point very far away is still feasible, the solution space is unbounded in the optimal direction.
+            if (parsedConstraints.every(c => checkConstraint(c, testPoint))) {
                 return { type: 'unbounded' };
             }
 
-            // Step 4: If not infeasible or unbounded, it must be optimal.
-            return { type: 'optimal', vertex: bestVertex, value: bestValue };
+            // Final decision
+            if (bestVertices.length > 1) {
+                return { type: 'multiple', vertices: bestVertices, value: bestValue };
+            } else {
+                return { type: 'optimal', vertex: bestVertices[0], value: bestValue };
+            }
         }
         
         function updateSliderRange(resetValue = false) {
@@ -735,13 +730,30 @@
             ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
         }
 
-        function drawOptimalVertex(vertex) {
-            const p = toScreenCoords(vertex);
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
-            ctx.fillStyle = '#f59e0b'; ctx.fill();
-            ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
-            ctx.stroke();
+        function drawOptimalVertices(vertices) {
+            // Draw connecting line first if there are two vertices
+            if (vertices.length === 2) {
+                ctx.beginPath();
+                const p1 = toScreenCoords(vertices[0]);
+                const p2 = toScreenCoords(vertices[1]);
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 5; // Make the optimal line thicker
+                ctx.stroke();
+            }
+
+            // Draw each vertex on top
+            vertices.forEach(vertex => {
+                const p = toScreenCoords(vertex);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
         }
         
         function drawObjectiveLine(objective, z) {
@@ -786,7 +798,18 @@
                  solutionSummary.classList.add('bg-yellow-100', 'text-yellow-800');
                  solutionSummary.innerHTML = `<p class="font-bold">해가 무한함 (Unbounded)</p><p>목적 함수 값이 무한히 커지거나 작아질 수 있습니다.</p>`;
                  document.getElementById('sensitivity-analysis-container').classList.add('hidden');
-                 return;
+                 // Do not return early, still show vertices if any were found
+            }
+            if (optimalSolution.type === 'multiple') {
+                solutionSummary.classList.add('bg-green-100', 'text-green-800');
+                const typeText = objectiveTypeSelect.value === 'maximize' ? '최댓값' : '최솟값';
+                const v1 = optimalSolution.vertices[0];
+                const v2 = optimalSolution.vertices[1];
+                solutionSummary.innerHTML = `
+                    <p class="font-bold">복수 최적해 발견! (Multiple Optimal Solutions)</p>
+                    <p>선분 <strong>(${formatNumber(v1.x)}, ${formatNumber(v1.y)})</strong> - <strong>(${formatNumber(v2.x)}, ${formatNumber(v2.y)})</strong> 위의 모든 점에서</p>
+                    <p>목적 함수의 <strong>${typeText} Z = ${formatNumber(optimalSolution.value)}</strong> 입니다.</p>
+                `;
             }
             if(optimalSolution.type === 'optimal' && optimalSolution.vertex) {
                 solutionSummary.classList.add('bg-green-100', 'text-green-800');
@@ -799,7 +822,13 @@
             }
 
             feasibleVertices.forEach((v, index) => {
-                const isOptimal = optimalSolution.vertex && Math.abs(v.x - optimalSolution.vertex.x) < EPSILON && Math.abs(v.y - optimalSolution.vertex.y) < EPSILON;
+                let isOptimal = false;
+                if (optimalSolution.type === 'optimal' && optimalSolution.vertex) {
+                    isOptimal = Math.abs(v.x - optimalSolution.vertex.x) < EPSILON && Math.abs(v.y - optimalSolution.vertex.y) < EPSILON;
+                } else if (optimalSolution.type === 'multiple' && optimalSolution.vertices) {
+                    isOptimal = optimalSolution.vertices.some(ov => Math.abs(v.x - ov.x) < EPSILON && Math.abs(v.y - ov.y) < EPSILON);
+                }
+
                 const row = document.createElement('tr');
                 row.className = isOptimal ? 'bg-amber-100 font-bold' : 'bg-white';
                 row.innerHTML = `
