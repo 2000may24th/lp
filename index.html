@@ -386,8 +386,8 @@
             const constraintsInputs = Array.from(document.querySelectorAll('.constraint-input'));
             parsedConstraints = constraintsInputs.map(input => parseConstraint(input.value)).filter(c => c !== null);
 
-            if (nonNegativityX.checked) parsedConstraints.push({ coeffs: {x: 1, y: 0}, type: '>=', value: 0, original: 'x &ge; 0'});
-            if (nonNegativityY.checked) parsedConstraints.push({ coeffs: {x: 0, y: 1}, type: '>=', value: 0, original: 'y &ge; 0'});
+            if (nonNegativityX.checked) parsedConstraints.push({ coeffs: {x: 1, y: 0}, type: '>=', value: 0, original: 'x >= 0'});
+            if (nonNegativityY.checked) parsedConstraints.push({ coeffs: {x: 0, y: 1}, type: '>=', value: 0, original: 'y >= 0'});
 
             const objectiveFunction = parseObjectiveFunction();
             if (!objectiveFunction) {
@@ -472,28 +472,31 @@
                 default: return false;
             }
         }
-
+        
+        // --- START: 수정된 함수 ---
         function findOptimalSolution(vertices, objective) {
+            // Step 1: Handle cases with no vertices.
+            // 이 알고리즘은 교차점(꼭짓점)을 찾는 데 의존합니다.
+            // 만약 가능한 꼭짓점을 찾지 못하면, 실행 불가능(infeasible)으로 가정합니다.
+            // 이는 모서리가 없는 영역(예: x > 1)에 대한 한계이지만, 그래픽 접근 방식에 내재된 부분입니다.
             if (vertices.length === 0) {
-                 let hasPositiveX = parsedConstraints.some(c=>c.original === 'x >= 0');
-                 let hasPositiveY = parsedConstraints.some(c=>c.original === 'y >= 0');
-                 if(hasPositiveX && hasPositiveY && parsedConstraints.length > 2) {
-                     return { type: 'infeasible' };
-                 }
+                return { type: 'infeasible' };
             }
-            
+
+            // Step 2: Find the best vertex among the candidates.
             let bestVertex = null;
             let bestValue = objectiveTypeSelect.value === 'maximize' ? -Infinity : Infinity;
+            const isMaximize = objectiveTypeSelect.value === 'maximize';
 
             vertices.forEach(v => {
                 const z = objective.coeffs.x * v.x + objective.coeffs.y * v.y;
-                v.z = z;
-                if (objectiveTypeSelect.value === 'maximize') {
+                v.z = z; // Store z-value for table display
+                if (isMaximize) {
                     if (z > bestValue) {
                         bestValue = z;
                         bestVertex = v;
                     }
-                } else {
+                } else { // Minimize
                     if (z < bestValue) {
                         bestValue = z;
                         bestVertex = v;
@@ -501,13 +504,50 @@
                 }
             });
             
-             if (vertices.length > 0 && bestVertex === null) {
-                 return { type: 'unbounded' };
-             }
-             if (vertices.length === 0) return { type: 'infeasible' };
+            // This should not happen if vertices.length > 0, but as a safeguard:
+            if (!bestVertex) {
+                return { type: 'infeasible' };
+            }
 
+            // Step 3: Check for unboundedness.
+            // Heuristic: From the best vertex, take a large step in the direction of optimization.
+            // If the new point is still feasible, the solution is unbounded.
+            const LARGE_NUMBER = 1e7; // Using a larger number for robustness
+            const { x: c1, y: c2 } = objective.coeffs;
+
+            // Direction vector for optimization
+            let dx = isMaximize ? c1 : -c1;
+            let dy = isMaximize ? c2 : -c2;
+
+            // If objective function is zero, any point is optimal, and it's not unbounded.
+            if (Math.abs(dx) < EPSILON && Math.abs(dy) < EPSILON) {
+                return { type: 'optimal', vertex: bestVertex, value: bestValue };
+            }
+            
+            // Normalizing the direction vector can prevent issues with very large coefficients
+            const magnitude = Math.sqrt(dx*dx + dy*dy);
+            if (magnitude > EPSILON) {
+                dx /= magnitude;
+                dy /= magnitude;
+            }
+
+            const testPoint = {
+                x: bestVertex.x + LARGE_NUMBER * dx,
+                y: bestVertex.y + LARGE_NUMBER * dy
+            };
+
+            // Check if this distant point satisfies ALL constraints.
+            const isStillFeasible = parsedConstraints.every(c => checkConstraint(c, testPoint));
+            
+            if (isStillFeasible) {
+                // If a point very far away is still feasible, the solution space is unbounded in the optimal direction.
+                return { type: 'unbounded' };
+            }
+
+            // Step 4: If not infeasible or unbounded, it must be optimal.
             return { type: 'optimal', vertex: bestVertex, value: bestValue };
         }
+        // --- END: 수정된 함수 ---
         
         function updateSliderRange(resetValue = false) {
             if (feasibleVertices.length > 0) {
@@ -834,4 +874,3 @@
     </script>
 </body>
 </html>
-
